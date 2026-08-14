@@ -24,8 +24,8 @@ Before sending the email, verify that all items below are complete:
 
 Fill in your Shopify Dev Store details below:
 
-- **Storefront URL**: `https://[YOUR-STORE-NAME].myshopify.com`
-- **Storefront Password**: `[YOUR-STOREFRONT-PASSWORD]`
+- **Storefront URL**: `https://purelane-assessment-zf48kdeb.myshopify.com`
+- **Storefront Password**: `seumay`
 - **GitHub Repository URL**: `https://github.com/jaykishan5/Submission`
 
 *(Test accessing your storefront URL in an incognito window using the storefront password to confirm it works).*
@@ -38,15 +38,15 @@ Copy and paste the template below to submit your assignment:
 
 ```text
 To: nj@troopod.io
-Subject: AI Product Engineer Assignment - [Your Full Name]
+Subject: AI Product Engineer Assignment - Jaykishan
 
 Hi NJ,
 
 Please find my submission for the AI Product Engineer Assignment below.
 
 1. Shopify Dev Store & GitHub Repo:
-   • Storefront URL: https://[YOUR-STORE-NAME].myshopify.com
-   • Storefront Password: [YOUR-STOREFRONT-PASSWORD]
+   • Storefront URL: https://purelane-assessment-zf48kdeb.myshopify.com
+   • Storefront Password: seumay
    • GitHub Repository: https://github.com/jaykishan5/Submission
 
 2. Project Highlights & Architecture:
@@ -67,6 +67,5 @@ Please find my submission for the AI Product Engineer Assignment below.
 Looking forward to your feedback!
 
 Best regards,
-[Your Full Name]
-[Your Phone Number / LinkedIn Profile]
+Jaykishan
 ```
