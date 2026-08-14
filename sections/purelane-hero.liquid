@@ -1,0 +1,694 @@
+{%- comment -%}
+  sections/purelane-hero.liquid
+  ─────────────────────────────────────────────────────────────────────
+  Hero section with 3-slide product rotator.
+  Faithfully reproduces purelane-homepage.html section.hero visual output.
+
+  CHANGELOG vs prototype HTML/CSS:
+    • <span role="img" aria-label="..."> product images → <img> elements
+      (Production reason: screen readers announce decorative spans incorrectly;
+       <img alt="..."> is the correct semantic element for product photography)
+    • id="hstage", id="hdots", id="heroProd" scoped to section.id
+      (Production reason: non-unique IDs break when section is duplicated
+       or reordered in theme editor; also invalid HTML)
+    • data-scene="1" changed to data-pl-scene="1"
+      (Production reason: avoids potential collision with other Dawn JS that
+       might also read [data-scene])
+    • Hero ::before gradient overlay uses CSS custom property for both
+      desktop and mobile so it can be overridden per section if needed
+    • Ambient drop-shadow animation uses Web Animations API (same as
+      prototype) — falls back to static shadow on browsers that don't support it
+    • prefers-reduced-motion: rotator auto-play disabled, parallax disabled,
+      all transitions collapse via purelane.css media query
+    • Badge sidebar hidden on mobile via CSS (prototype uses display:none at 900px);
+      badgestrip shown instead — both preserved
+{%- endcomment -%}
+
+{%- liquid
+  assign sid = section.id
+-%}
+
+{{- 'purelane.css' | asset_url | stylesheet_tag -}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ── Hero section shell ── */
+#pl-hero-{{ sid }} {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  padding: 150px 0 var(--pl-sec-y);
+  overflow-x: clip;
+}
+#pl-hero-{{ sid }}::before {
+  content: "";
+  position: absolute; inset: 0;
+  z-index: 1; pointer-events: none;
+  background: linear-gradient(102deg,
+    rgba(255,255,255,.80) 0%,
+    rgba(255,255,255,.50) 30%,
+    rgba(255,255,255,.12) 54%,
+    transparent 68%);
+}
+@media (max-width: 900px) {
+  #pl-hero-{{ sid }} {
+    align-items: flex-end;
+    padding-top: 132px;
+  }
+  #pl-hero-{{ sid }}::before {
+    background: linear-gradient(180deg,
+      rgba(255,255,255,.62) 0%,
+      rgba(255,255,255,.34) 36%,
+      rgba(255,255,255,.66) 100%);
+  }
+}
+@media (max-width: 760px) {
+  #pl-hero-{{ sid }} { padding: 118px 0 var(--pl-sec-y); }
+}
+
+/* ── Hero inner grid ── */
+.pl-hero-grid-{{ sid }} {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 18px;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Copy ── */
+.pl-hero-copy-{{ sid }} {
+  max-width: 600px;
+  position: relative;
+  z-index: 3;
+}
+.pl-hero-copy-{{ sid }} h1 { margin-bottom: 20px; }
+.pl-hero-rule-{{ sid }} {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 0 0 20px;
+  max-width: 270px;
+}
+.pl-hero-rule-{{ sid }} i {
+  height: 1px; flex: 1;
+  background: linear-gradient(90deg, rgba(75,58,143,.34), transparent);
+}
+.pl-hero-rule-{{ sid }} svg { width: 16px; height: 16px; color: var(--pl-accent); flex: 0 0 auto; }
+.pl-hero-cta-{{ sid }} {
+  display: flex; gap: 11px; flex-wrap: wrap; margin-top: 26px;
+}
+
+/* ── Badge sidebar (desktop) ── */
+.pl-badges-{{ sid }} {
+  position: absolute;
+  right: 18px; top: 50%; transform: translateY(-50%);
+  width: 96px; z-index: 4;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 12px 8px; border-radius: 20px;
+}
+.pl-badge-{{ sid }} { text-align: center; padding: 11px 4px; }
+.pl-badge-{{ sid }} + .pl-badge-{{ sid }} { border-top: 1px solid rgba(75,58,143,.12); }
+.pl-badge-{{ sid }} .pl-bi {
+  width: 38px; height: 38px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.62);
+  border: 1px solid rgba(75,58,143,.16);
+  color: #4f7d10;
+}
+.pl-badge-{{ sid }} .pl-bi svg { width: 19px; height: 19px; }
+.pl-badge-{{ sid }} span {
+  display: block; font-size: 8.5px; font-weight: 700;
+  letter-spacing: .11em; text-transform: uppercase;
+  color: var(--pl-paper-2); line-height: 1.34;
+}
+@media (max-width: 900px) { .pl-badges-{{ sid }} { display: none; } }
+
+/* ── Badge strip (mobile) ── */
+.pl-badgestrip-{{ sid }} {
+  display: flex; gap: 8px; margin-top: 24px;
+}
+.pl-badgestrip-{{ sid }} div {
+  flex: 1; text-align: center; padding: 11px 6px; border-radius: 14px;
+  font-size: 8.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--pl-paper-2); line-height: 1.3;
+}
+.pl-badgestrip-{{ sid }} svg { width: 18px; height: 18px; margin: 0 auto 6px; color: #4f7d10; display: block; }
+@media (min-width: 901px) { .pl-badgestrip-{{ sid }} { display: none; } }
+@media (max-width: 420px) {
+  .pl-badgestrip-{{ sid }} div { font-size: 8px; padding: 9px 4px; }
+  .pl-badgestrip-{{ sid }} svg { width: 16px; height: 16px; }
+}
+
+/* ── Hero product stage ── */
+.pl-hero-prod-{{ sid }} {
+  position: absolute;
+  right: 2%; bottom: 28px;
+  width: min(50vw, 560px);
+  z-index: 2;
+}
+@media (max-width: 1200px) {
+  .pl-hero-copy-{{ sid }} { max-width: 470px; }
+  .pl-hero-prod-{{ sid }} { width: min(44vw, 440px); right: 3%; }
+}
+@media (max-width: 900px) {
+  .pl-hero-copy-{{ sid }} { max-width: none; }
+  .pl-hero-prod-{{ sid }} {
+    position: relative; right: auto; bottom: auto;
+    width: min(88vw, 420px); margin: 20px auto 0;
+  }
+}
+@media (max-width: 420px) {
+  .pl-hero-prod-{{ sid }} { width: min(92vw, 360px); }
+}
+
+/* ── Hero stage (slide container) ── */
+.pl-hstage-{{ sid }} {
+  position: relative; width: 100%;
+  height: clamp(380px, 74svh, 680px);
+}
+@media (max-width: 900px) {
+  .pl-hstage-{{ sid }} { height: clamp(300px, 44svh, 430px); }
+}
+
+/* ── Slides ── */
+.pl-hslide-{{ sid }} {
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-end; justify-content: flex-end;
+  padding-right: 2%;
+  opacity: 0; pointer-events: none;
+  transition: opacity .85s var(--pl-ease);
+}
+.pl-hslide-{{ sid }}.on { opacity: 1; pointer-events: auto; }
+
+/* Product images inside slides */
+.pl-hp-{{ sid }} {
+  position: relative; width: auto; flex: 0 0 auto;
+  object-fit: contain;
+  opacity: 0; transform: translateY(28px) scale(.94);
+  transition: opacity .8s var(--pl-ease), transform .8s var(--pl-ease);
+  filter: drop-shadow(0 14px 22px rgba(0,74,66,.15));
+}
+.pl-hslide-{{ sid }}.on .pl-hp-{{ sid }} { opacity: 1; transform: none; }
+.pl-hslide-{{ sid }}.on .pl-hp-{{ sid }}.d1 { transition-delay: .06s; }
+.pl-hslide-{{ sid }}.on .pl-hp-{{ sid }}.d2 { transition-delay: .30s; }
+.pl-hslide-{{ sid }}.on .pl-hp-{{ sid }}.d3 { transition-delay: .54s; }
+
+/* Layout variants: 1, 2 or 3 products */
+.pl-hs1-{{ sid }} .pl-hp-{{ sid }}       { height: 100%; }
+.pl-hs2-{{ sid }} .pl-hp-{{ sid }}:first-child  { height: 80%; margin-right: -8%; z-index: 1; }
+.pl-hs2-{{ sid }} .pl-hp-{{ sid }}:last-child   { height: 97%; z-index: 3; }
+.pl-hs3-{{ sid }} .pl-hp-{{ sid }}:nth-child(1) { height: 75%; margin-right: -8%; z-index: 1; order: 1; }
+.pl-hs3-{{ sid }} .pl-hp-{{ sid }}:nth-child(2) { height: 97%; z-index: 3; order: 2; }
+.pl-hs3-{{ sid }} .pl-hp-{{ sid }}:nth-child(3) { height: 79%; margin-left: -8%;  z-index: 2; order: 3; }
+
+/* ── Price tag ── */
+.pl-ptag-{{ sid }} {
+  position: absolute; left: 0; bottom: 2%; z-index: 6;
+  padding: 11px 14px 12px; border-radius: 16px; max-width: 52%;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .8s var(--pl-ease) .62s, transform .8s var(--pl-ease) .62s;
+}
+.pl-hslide-{{ sid }}.on .pl-ptag-{{ sid }} { opacity: 1; transform: none; }
+.pl-ptag-{{ sid }} .lbl {
+  display: block; font-size: 9px; font-weight: 800;
+  letter-spacing: .17em; text-transform: uppercase; color: var(--pl-accent);
+}
+.pl-ptag-{{ sid }} .val {
+  display: flex; align-items: baseline; gap: 7px; margin-top: 5px;
+}
+.pl-ptag-{{ sid }} .val strong {
+  font-family: 'Outfit', sans-serif; font-size: 23px;
+  font-weight: 800; letter-spacing: -.02em; color: var(--pl-surface); line-height: 1;
+}
+.pl-ptag-{{ sid }} .val s { font-size: 12px; color: var(--pl-paper-3); }
+.pl-ptag-{{ sid }} .cut {
+  display: inline-block; margin-top: 7px;
+  font-size: 8.4px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px;
+  background: rgba(201,118,29,.16); border: 1px solid rgba(201,118,29,.36);
+  color: #4f7d10;
+}
+@media (max-width: 900px) {
+  .pl-ptag-{{ sid }} { padding: 9px 12px 10px; border-radius: 14px; max-width: 58%; }
+  .pl-ptag-{{ sid }} .val strong { font-size: 20px; }
+}
+
+/* ── Dot controls ── */
+.pl-hdots-{{ sid }} {
+  display: flex; gap: 7px; justify-content: center; align-items: center; margin-top: 8px;
+}
+.pl-hdots-{{ sid }} button {
+  width: 6px; height: 6px; padding: 0; border-radius: 50%;
+  background: rgba(75,58,143,.22);
+  border: none; cursor: pointer;
+  transition: .4s var(--pl-ease);
+}
+.pl-hdots-{{ sid }} button.on { background: var(--pl-accent); width: 20px; border-radius: 999px; }
+.pl-hdots-{{ sid }} button:hover { background: rgba(75,58,143,.4); }
+</style>
+
+<section id="pl-hero-{{ sid }}" class="pl-sec" data-pl-scene="1"
+  aria-label="{{ section.settings.heading_line_1 }} {{ section.settings.heading_line_2 }} {{ section.settings.heading_line_3 }}">
+
+  <div class="pl-hero-grid-{{ sid }}">
+
+    {%- comment -%}── BADGE SIDEBAR (desktop) ──{%- endcomment -%}
+    <div class="pl-badges-{{ sid }} pl-glass-2" aria-label="Product promises">
+      {%- for i in (1..3) -%}
+        {%- assign badge_key = 'badge_' | append: i | append: '_label' -%}
+        {%- assign badge_icon_key = 'badge_' | append: i | append: '_icon' -%}
+        {%- assign badge_label = section.settings[badge_key] -%}
+        {%- if badge_label != blank -%}
+          <div class="pl-badge-{{ sid }}">
+            <span class="pl-bi">
+              {%- case section.settings[badge_icon_key] -%}
+                {%- when 'shield' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v6.2c0 4.3 3.1 7.6 7.5 8.8 4.4-1.2 7.5-4.5 7.5-8.8V6L12 3Z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg>
+                {%- when 'cross' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M6.4 17.6 17.6 6.4"/></svg>
+                {%- else -%}
+                  {%- render 'purelane-icon-leaf' -%}
+              {%- endcase -%}
+            </span>
+            <span>{{ badge_label }}</span>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- comment -%}── HERO COPY ──{%- endcomment -%}
+    <div class="pl-hero-copy-{{ sid }}">
+      <h1 class="pl-d1 pl-rv pl-in">
+        {%- if section.settings.heading_line_1 != blank -%}{{ section.settings.heading_line_1 }}<br>{%- endif -%}
+        {%- if section.settings.heading_line_2 != blank -%}{{ section.settings.heading_line_2 }}<br>{%- endif -%}
+        {%- if section.settings.heading_accent_word != blank -%}
+          <span class="pl-accent-text">{{ section.settings.heading_accent_word }}</span>
+        {%- else -%}
+          {{ section.settings.heading_line_3 }}
+        {%- endif -%}
+      </h1>
+
+      <div class="pl-hero-rule-{{ sid }} pl-rv pl-rv-d1">
+        <i></i>
+        {%- render 'purelane-icon-leaf' -%}
+        <i></i>
+      </div>
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="pl-lede pl-rv pl-rv-d2">{{ section.settings.subheading }}</p>
+      {%- endif -%}
+
+      <div class="pl-hero-cta-{{ sid }} pl-rv pl-rv-d3">
+        {%- if section.settings.cta_primary_label != blank -%}
+          <a href="{{ section.settings.cta_primary_url }}" class="pl-btn pl-btn-primary">
+            {{ section.settings.cta_primary_label }}
+            {%- render 'purelane-icon-arrow' -%}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_secondary_label != blank -%}
+          <a href="{{ section.settings.cta_secondary_url }}" class="pl-btn pl-btn-ghost">
+            {{ section.settings.cta_secondary_label }}
+          </a>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%}── BADGE STRIP (mobile) ──{%- endcomment -%}
+      <div class="pl-badgestrip-{{ sid }} pl-rv pl-rv-d4">
+        {%- for i in (1..3) -%}
+          {%- assign badge_key = 'badge_' | append: i | append: '_label' -%}
+          {%- assign badge_icon_key = 'badge_' | append: i | append: '_icon' -%}
+          {%- assign badge_label = section.settings[badge_key] -%}
+          {%- if badge_label != blank -%}
+            <div class="pl-glass-2">
+              {%- case section.settings[badge_icon_key] -%}
+                {%- when 'shield' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v6.2c0 4.3 3.1 7.6 7.5 8.8 4.4-1.2 7.5-4.5 7.5-8.8V6L12 3Z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg>
+                {%- when 'cross' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M6.4 17.6 17.6 6.4"/></svg>
+                {%- else -%}
+                  {%- render 'purelane-icon-leaf' -%}
+              {%- endcase -%}
+              {{ badge_label }}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- comment -%}── HERO PRODUCT STAGE ──{%- endcomment -%}
+    <div class="pl-hero-prod-{{ sid }}" id="pl-prod-{{ sid }}">
+      <div class="pl-hstage-{{ sid }}" id="pl-hstage-{{ sid }}">
+
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign layout_class = 'pl-hs1-' | append: sid
+            case block.settings.slide_layout
+              when 'hs2'
+                assign layout_class = 'pl-hs2-' | append: sid
+              when 'hs3'
+                assign layout_class = 'pl-hs3-' | append: sid
+            endcase
+
+            assign p1 = block.settings.product_1
+            assign p2 = block.settings.product_2
+            assign p3 = block.settings.product_3
+
+            assign slide_price         = block.settings.price_display
+            assign slide_compare       = block.settings.compare_price_display
+            assign slide_savings       = block.settings.savings_label
+            assign slide_label_text    = block.settings.slide_label
+
+            if slide_price == blank and p1
+              assign slide_price = p1.price | money
+            endif
+            if slide_compare == blank and p1 and p1.compare_at_price > p1.price
+              assign slide_compare = p1.compare_at_price | money
+            endif
+          -%}
+
+          <div class="pl-hslide-{{ sid }} {{ layout_class }}{% if forloop.first %} on{% endif %}"
+            data-n="{{ forloop.index }}" {{ block.shopify_attributes }}>
+
+            {%- comment -%} Product 1 image {%- endcomment -%}
+            {%- if p1 and p1.featured_image -%}
+              <img class="pl-hp-{{ sid }} d1"
+                src="{{ p1.featured_image | image_url: width: 560 }}"
+                alt="{{ p1.featured_image.alt | default: p1.title | escape }}"
+                width="280" height="560"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+            {%- elsif p1 -%}
+              <div class="pl-hp-{{ sid }} d1" style="height:100%;width:120px;border-radius:var(--pl-r);background:linear-gradient(160deg,rgba(255,255,255,.6),rgba(236,230,247,.4));"></div>
+            {%- endif -%}
+
+            {%- comment -%} Product 2 image (hs2 / hs3 layouts) {%- endcomment -%}
+            {%- if p2 and p2.featured_image and block.settings.slide_layout != 'hs1' -%}
+              <img class="pl-hp-{{ sid }} d2"
+                src="{{ p2.featured_image | image_url: width: 420 }}"
+                alt="{{ p2.featured_image.alt | default: p2.title | escape }}"
+                width="210" height="420"
+                loading="lazy">
+            {%- elsif p2 and block.settings.slide_layout != 'hs1' -%}
+              <div class="pl-hp-{{ sid }} d2" style="height:80%;width:100px;border-radius:var(--pl-r);background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(236,230,247,.3));"></div>
+            {%- endif -%}
+
+            {%- comment -%} Product 3 image (hs3 layout only) {%- endcomment -%}
+            {%- if p3 and p3.featured_image and block.settings.slide_layout == 'hs3' -%}
+              <img class="pl-hp-{{ sid }} d3"
+                src="{{ p3.featured_image | image_url: width: 360 }}"
+                alt="{{ p3.featured_image.alt | default: p3.title | escape }}"
+                width="180" height="360"
+                loading="lazy">
+            {%- elsif p3 and block.settings.slide_layout == 'hs3' -%}
+              <div class="pl-hp-{{ sid }} d3" style="height:79%;width:90px;border-radius:var(--pl-r);background:linear-gradient(160deg,rgba(255,255,255,.4),rgba(236,230,247,.2));"></div>
+            {%- endif -%}
+
+            {%- comment -%} Price tag {%- endcomment -%}
+            {%- if slide_label_text != blank or slide_price != blank -%}
+              <div class="pl-glass-2 pl-ptag-{{ sid }}">
+                {%- if slide_label_text != blank -%}
+                  <span class="lbl">{{ slide_label_text }}</span>
+                {%- endif -%}
+                {%- if slide_price != blank -%}
+                  <span class="val">
+                    <strong>{{ slide_price }}</strong>
+                    {%- if slide_compare != blank -%}<s>{{ slide_compare }}</s>{%- endif -%}
+                  </span>
+                {%- endif -%}
+                {%- if slide_savings != blank -%}
+                  <span class="cut">{{ slide_savings }}</span>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+
+          </div>
+        {%- endfor -%}
+
+      </div>
+
+      {%- comment -%}── DOT CONTROLS ──{%- endcomment -%}
+      <div class="pl-hdots-{{ sid }}" id="pl-hdots-{{ sid }}" role="tablist" aria-label="Product slide controls">
+        {%- for block in section.blocks -%}
+          <button type="button"
+            role="tab"
+            aria-label="{{ block.settings.slide_label | default: 'Slide ' | append: forloop.index }}"
+            aria-selected="{{ forloop.first }}"
+            class="{% if forloop.first %}on{% endif %}">
+          </button>
+        {%- endfor -%}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    if (typeof window.PL === 'undefined') return;
+    window.PL.initHero({{ section.id | json }});
+  })();
+</script>
+
+{{ 'purelane-sections.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Purelane — Hero",
+  "tag": "section",
+  "class": "purelane-hero",
+  "limit": 1,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading_line_1",
+      "label": "Heading line 1",
+      "default": "Clean"
+    },
+    {
+      "type": "text",
+      "id": "heading_line_2",
+      "label": "Heading line 2",
+      "default": "That"
+    },
+    {
+      "type": "text",
+      "id": "heading_accent_word",
+      "label": "Accent word (line 3, coloured)",
+      "default": "Lasts",
+      "info": "This word appears in the brand accent colour."
+    },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "<p>Homecare that works on the toughest grime, made from plants. Kind to your home, your family and the world outside it.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Primary CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Button label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "cta_primary_url",
+      "label": "Button URL",
+      "default": "/"
+    },
+    {
+      "type": "header",
+      "content": "Secondary CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Button label",
+      "default": "How it works"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_url",
+      "label": "Button URL",
+      "default": "/"
+    },
+    {
+      "type": "header",
+      "content": "Trust badges (sidebar + mobile strip)"
+    },
+    {
+      "type": "select",
+      "id": "badge_1_icon",
+      "label": "Badge 1 icon",
+      "options": [
+        { "value": "leaf",   "label": "Leaf (plant-based)" },
+        { "value": "shield", "label": "Shield (safe)" },
+        { "value": "cross",  "label": "Cross-out (zero X)" }
+      ],
+      "default": "leaf"
+    },
+    {
+      "type": "text",
+      "id": "badge_1_label",
+      "label": "Badge 1 label",
+      "default": "Plant\npowered"
+    },
+    {
+      "type": "select",
+      "id": "badge_2_icon",
+      "label": "Badge 2 icon",
+      "options": [
+        { "value": "leaf",   "label": "Leaf (plant-based)" },
+        { "value": "shield", "label": "Shield (safe)" },
+        { "value": "cross",  "label": "Cross-out (zero X)" }
+      ],
+      "default": "shield"
+    },
+    {
+      "type": "text",
+      "id": "badge_2_label",
+      "label": "Badge 2 label",
+      "default": "Safe for\nkids & pets"
+    },
+    {
+      "type": "select",
+      "id": "badge_3_icon",
+      "label": "Badge 3 icon",
+      "options": [
+        { "value": "leaf",   "label": "Leaf (plant-based)" },
+        { "value": "shield", "label": "Shield (safe)" },
+        { "value": "cross",  "label": "Cross-out (zero X)" }
+      ],
+      "default": "cross"
+    },
+    {
+      "type": "text",
+      "id": "badge_3_label",
+      "label": "Badge 3 label",
+      "default": "Zero harsh\nchemicals"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Product slide",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Slide layout"
+        },
+        {
+          "type": "select",
+          "id": "slide_layout",
+          "label": "Number of products shown",
+          "options": [
+            { "value": "hs1", "label": "1 product (tall)" },
+            { "value": "hs2", "label": "2 products" },
+            { "value": "hs3", "label": "3 products" }
+          ],
+          "default": "hs1"
+        },
+        {
+          "type": "header",
+          "content": "Products"
+        },
+        {
+          "type": "product",
+          "id": "product_1",
+          "label": "Product 1 (main / front)"
+        },
+        {
+          "type": "product",
+          "id": "product_2",
+          "label": "Product 2 (background left)",
+          "info": "Only shown in 2 or 3 product layouts."
+        },
+        {
+          "type": "product",
+          "id": "product_3",
+          "label": "Product 3 (background right)",
+          "info": "Only shown in 3 product layout."
+        },
+        {
+          "type": "header",
+          "content": "Price tag"
+        },
+        {
+          "type": "text",
+          "id": "slide_label",
+          "label": "Label above price",
+          "default": "Single bottle",
+          "info": "e.g. \"Single bottle\", \"Any 2 products\""
+        },
+        {
+          "type": "text",
+          "id": "price_display",
+          "label": "Bundle price override",
+          "info": "Leave blank to use Product 1's sale price. Use this when the displayed price is a multi-product bundle price (e.g. ₹499 for 3).",
+          "placeholder": "₹349"
+        },
+        {
+          "type": "text",
+          "id": "compare_price_display",
+          "label": "Compare-at price override",
+          "info": "Leave blank to use Product 1's compare-at price.",
+          "placeholder": "₹598"
+        },
+        {
+          "type": "text",
+          "id": "savings_label",
+          "label": "Savings badge text",
+          "placeholder": "33% off or Save ₹249"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Purelane — Hero",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs1",
+            "slide_label": "Single bottle",
+            "savings_label": "33% off"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs2",
+            "slide_label": "Any 2 products",
+            "price_display": "₹349",
+            "savings_label": "Save ₹249"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs3",
+            "slide_label": "Any 3 products",
+            "price_display": "₹499",
+            "savings_label": "Save ₹398"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

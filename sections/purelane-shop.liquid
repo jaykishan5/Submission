@@ -1,0 +1,198 @@
+{%- comment -%}
+  sections/purelane-shop.liquid
+  ─────────────────────────────────────────────────────────────────────
+  Product grid — pulls live products from a Shopify collection.
+
+  CHANGELOG vs prototype:
+    • Static <article class="glass card"> × 4 → {% for product in collection %}
+      (Production reason: hardcoded products cannot reflect inventory,
+       pricing, or stock changes — must come from Shopify platform)
+    • <span role="img" aria-label="..."> → <img> with alt from product.title
+    • Ratings: metafields reviews.rating + reviews.rating_count
+      (per plan Q1 recommendation A — set per-product in admin)
+    • Pill badge: metafield purelane.badge_label per product
+    • "Add to cart" → navigates to product URL (standard, no AJAX required;
+       can be upgraded to fetch() ATC by section owner)
+    • Sold-out, no-image, and long-title edge cases handled defensively
+    • id attribute removed from section element (section.id scopes JS)
+{%- endcomment -%}
+
+{%- liquid
+  assign sid        = section.id
+  assign collection = collections[section.settings.collection]
+  assign limit      = section.settings.products_to_show | default: 8
+-%}
+
+{{- 'purelane.css' | asset_url | stylesheet_tag -}}
+
+<style>
+#pl-shop-{{ sid }} {
+  position: relative;
+  z-index: 2;
+  padding: var(--pl-sec-y) 0;
+}
+.pl-shop-wrap-{{ sid }} {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+.pl-shelf-{{ sid }} {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 860px) {
+  .pl-shelf-{{ sid }} { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+
+<section id="pl-shop-{{ sid }}" data-pl-scene="3">
+  <div class="pl-shop-wrap-{{ sid }}">
+
+    <div class="pl-panel-head pl-rv">
+      {%- if section.settings.kicker != blank -%}
+        <span class="pl-kicker">{{ section.settings.kicker }}</span>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="pl-d2" style="margin-top:12px">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      <div class="pl-rule" style="margin:10px auto 0; justify-content:center;">
+        <i></i>
+        {%- render 'purelane-icon-leaf' -%}
+        <i></i>
+      </div>
+    </div>
+
+    {%- if collection == nil or collection.products_count == 0 -%}
+      {%- comment -%}
+        Placeholder state: no collection assigned or collection is empty.
+        Renders a 4-card ghost grid so the layout is visible in the theme editor.
+      {%- endcomment -%}
+      <div class="pl-shelf-{{ sid }}">
+        {%- for i in (1..4) -%}
+          <article class="pl-glass pl-card pl-rv" style="opacity:.5;">
+            <div class="pl-card__shot pl-card__shot--empty" aria-label="No product assigned"></div>
+            <h4 style="color:var(--pl-paper-3);">Select a collection above</h4>
+            <div class="pl-card__pr"><strong style="color:var(--pl-paper-3);">—</strong></div>
+          </article>
+        {%- endfor -%}
+      </div>
+
+    {%- else -%}
+      <div class="pl-shelf-{{ sid }}">
+        {%- for product in collection.products limit: limit -%}
+          {%- liquid
+            assign delays = 'pl-rv-d1,pl-rv-d2,pl-rv-d3,pl-rv-d4' | split: ','
+            assign delay_idx = forloop.index0 | modulo: 4
+            assign delay_class = delays[delay_idx]
+
+            assign rating      = product.metafields.reviews.rating.value
+            assign rating_count = product.metafields.reviews.rating_count.value
+            assign badge_label = product.metafields.purelane.badge_label.value
+
+            assign rating_str  = ''
+            assign count_str   = ''
+            if rating != blank
+              assign rating_str = rating | round: 1 | append: ''
+            endif
+            if rating_count != blank
+              assign count_str = rating_count | append: ' reviews'
+            endif
+
+            if badge_label == blank
+              if product.available == false
+                assign badge_label = ''
+              endif
+            endif
+          -%}
+
+          {%- render 'purelane-card',
+            card_product:      product,
+            card_pill_label:   badge_label,
+            card_rating:       rating_str,
+            card_review_count: count_str,
+            card_cta_label:    section.settings.cta_label,
+            card_cta_url:      product.url,
+            card_show_rating:  section.settings.show_rating,
+            card_reveal_delay: delay_class
+          -%}
+
+        {%- else -%}
+          <p class="pl-body-s" style="grid-column:1/-1;text-align:center;padding:40px 0;">
+            No products found in this collection.
+          </p>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{{ 'purelane-sections.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Purelane — Shop grid",
+  "tag": "section",
+  "class": "purelane-shop",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker label",
+      "default": "Bestsellers"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Loved by 30,000 homes"
+    },
+    {
+      "type": "header",
+      "content": "Collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Product collection",
+      "info": "Select the collection to display. Products appear in collection sort order."
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 4,
+      "max": 12,
+      "step": 4,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Card options"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show star rating",
+      "default": true,
+      "info": "Reads from product metafields reviews.rating and reviews.rating_count. Set these in Shopify Admin → Settings → Custom data → Products."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Card CTA label",
+      "default": "Add to cart"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Purelane — Shop grid"
+    }
+  ]
+}
+{% endschema %}

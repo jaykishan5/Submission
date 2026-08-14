@@ -1,0 +1,145 @@
+{%- comment -%}
+  snippets/purelane-card.liquid
+  ─────────────────────────────────────────────────────────────────────
+  Reusable product card shared by:
+    • purelane-shop.liquid   (shop grid)
+    • purelane-combos.liquid (combo stack images — partial use only)
+    • purelane-bundles.liquid (tierpix row — partial use only)
+    • Future: hero slide product thumbnails
+
+  Parameters (all optional; falls back gracefully):
+    card_product       — Shopify product object (or nil)
+    card_image         — image object override (e.g. a variant image)
+    card_title         — string override for product title
+    card_price         — integer override (in cents) for sale price
+    card_compare_price — integer override (in cents) for compare-at price
+    card_pill_label    — string badge label (e.g. "Best seller")
+    card_rating        — string rating (e.g. "4.8")
+    card_review_count  — string count (e.g. "237 reviews")
+    card_cta_label     — string CTA text (default: "Add to cart")
+    card_cta_url       — url string override for the CTA link
+    card_show_rating   — boolean (default: true)
+    card_size          — "sm" | "md" | "lg" (default: "md")
+    card_reveal_delay  — "" | "pl-rv-d1" ... "pl-rv-d5"
+
+  CHANGELOG vs prototype:
+    • <span role="img" aria-label="..."> → <img> with real alt text
+    • Sold-out state: disabled button, "Sold out" pill replaces badge
+    • No image: gradient placeholder div (matches .pl-card__shot--empty)
+    • Title clamped to 2 lines via -webkit-line-clamp (CSS in purelane.css)
+    • Add-to-cart uses standard Shopify cart form POST (no JS dependency);
+      sections that want AJAX ATC should override card_cta_url with the
+      product URL and handle ATC in their own section JS.
+{%- endcomment -%}
+
+{%- liquid
+  assign _product      = card_product
+  assign _image        = card_image        | default: _product.featured_image
+  assign _title        = card_title        | default: _product.title
+  assign _price        = card_price        | default: _product.price
+  assign _compare      = card_compare_price | default: _product.compare_at_price
+  assign _pill         = card_pill_label
+  assign _rating       = card_rating
+  assign _count        = card_review_count
+  assign _cta          = card_cta_label    | default: 'Add to cart'
+  assign _url          = card_cta_url      | default: _product.url
+  assign _show_rating  = card_show_rating  | default: true
+  assign _size         = card_size         | default: 'md'
+  assign _delay        = card_reveal_delay | default: ''
+  assign _available    = _product.available | default: true
+
+  if card_product == nil
+    assign _available = true
+  endif
+
+  assign _sold_out = false
+  unless _available
+    assign _sold_out = true
+  endunless
+
+  assign _show_compare = false
+  if _compare and _compare > _price
+    assign _show_compare = true
+  endif
+
+  assign _show_discount = false
+  if _show_compare
+    assign _discount_pct = _compare | minus: _price | times: 100 | divided_by: _compare
+    assign _show_discount = true
+  endif
+-%}
+
+<article class="pl-glass pl-card pl-rv {{ _delay }}"
+  aria-label="{{ _title | escape }}{% if _sold_out %}, sold out{% endif %}">
+
+  {{- '<!-- Card image shot -->' -}}
+  <a href="{{ _url }}" tabindex="-1" aria-hidden="true">
+    <div class="pl-card__shot{% unless _image %} pl-card__shot--empty{% endunless %}">
+
+      {%- if _sold_out -%}
+        <span class="pl-card__pill pl-card__pill--soldout">Sold out</span>
+      {%- elsif _pill != blank -%}
+        <span class="pl-card__pill">{{ _pill }}</span>
+      {%- endif -%}
+
+      {%- if _image -%}
+        {%- assign _img_url = _image | image_url: width: 400 -%}
+        <img
+          src="{{ _img_url }}"
+          alt="{{ _image.alt | default: _title | escape }}"
+          width="200"
+          height="200"
+          loading="lazy"
+          style="object-fit:contain;height:122px;width:auto;">
+      {%- endif -%}
+
+    </div>
+  </a>
+
+  {{- '<!-- Title -->' -}}
+  <a href="{{ _url }}" style="text-decoration:none;">
+    <h4>{{ _title | escape }}</h4>
+  </a>
+
+  {{- '<!-- Rating row (toggled via card_show_rating) -->' -}}
+  {%- if _show_rating and _rating != blank -%}
+    <div class="pl-card__rate">
+      <b>★ {{ _rating }}</b>
+      {%- if _count != blank -%}· {{ _count }}{%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {{- '<!-- Price row -->' -}}
+  <div class="pl-card__pr">
+    {%- if _sold_out -%}
+      <strong style="color:var(--pl-paper-3);">{{ _price | money }}</strong>
+    {%- else -%}
+      <strong>{{ _price | money }}</strong>
+      {%- if _show_compare -%}
+        <s>{{ _compare | money }}</s>
+        {%- if _show_discount -%}
+          <em>{{ _discount_pct }}% off</em>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {{- '<!-- CTA -->' -}}
+  {%- if _sold_out -%}
+    <button class="pl-btn pl-btn-ghost pl-btn-sm" disabled aria-disabled="true"
+      style="width:100%;justify-content:center;opacity:.5;cursor:not-allowed;">
+      Sold out
+    </button>
+  {%- elsif _url != blank -%}
+    {%- comment -%}
+      Standard link-based ATC: navigates to product page.
+      To upgrade to AJAX ATC, replace with a product-form snippet
+      or a custom fetch() call in the section's own <script> block.
+    {%- endcomment -%}
+    <a href="{{ _url }}" class="pl-btn pl-btn-ghost pl-btn-sm"
+      style="width:100%;justify-content:center;">
+      {{ _cta }}
+    </a>
+  {%- endif -%}
+
+</article>

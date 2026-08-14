@@ -1,0 +1,311 @@
+{%- comment -%}
+  sections/purelane-reviews.liquid
+  ─────────────────────────────────────────────────────────────────────
+  Auto-scrolling review marquee.
+
+  CHANGELOG vs prototype:
+    • Static review cards duplicated in HTML → Liquid loop × 2
+      (Production reason: merchant can add/remove blocks; both loops
+       must render the same set for the -50% marquee to stay seamless)
+    • Review content is block settings (Q1 recommendation B for the marquee
+       header aggregate; individual reviews use block settings for zero app dep)
+    • <article class="glass-2 rcard"> → <article class="pl-glass-2 pl-rcard-{{ sid }}">
+    • Stars rendered as ★ characters count from block.settings.stars (3/4/5)
+      rather than a hardcoded string — accessible via aria-label
+    • Hover-pause preserved (CSS only, no JS) — revrail:hover pauses animation
+    • prefers-reduced-motion: animation stopped entirely via purelane.css
+    • Marquee uses CSS animation only — no JS required for this section
+    • revhead aggregate stats are section settings (merchant-editable)
+{%- endcomment -%}
+
+{%- assign sid = section.id -%}
+
+{{- 'purelane.css' | asset_url | stylesheet_tag -}}
+
+<style>
+#pl-reviews-{{ sid }} {
+  position: relative; z-index: 2; padding: var(--pl-sec-y) 0;
+}
+
+/* Review header */
+.pl-revhead-{{ sid }} {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px 18px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.pl-revhead-{{ sid }} .pl-agg {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--pl-paper-2);
+}
+.pl-revhead-{{ sid }} .pl-agg b {
+  font-family: 'Outfit', sans-serif; font-size: 16px;
+  color: var(--pl-accent); letter-spacing: 0;
+}
+.pl-revhead-{{ sid }} .pl-st { color: #7a9c1e; font-size: 12px; letter-spacing: .16em; }
+
+/* Rail */
+.pl-revrail-{{ sid }} {
+  overflow: hidden; position: relative;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image:         linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+/* Track — rendered TWICE in markup for seamless -50% loop */
+.pl-revtrack-{{ sid }} {
+  display: flex; gap: 12px; width: max-content;
+  animation: pl-marq-{{ sid }} 52s linear infinite;
+}
+.pl-revrail-{{ sid }}:hover .pl-revtrack-{{ sid }},
+.pl-revrail-{{ sid }}:focus-within .pl-revtrack-{{ sid }} {
+  animation-play-state: paused;
+}
+@keyframes pl-marq-{{ sid }} {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@media (max-width: 760px) {
+  .pl-revtrack-{{ sid }} { animation-duration: 40s; }
+}
+
+/* Individual review card */
+.pl-rcard-{{ sid }} {
+  flex: 0 0 auto; width: 284px; padding: 15px 17px; border-radius: 18px;
+}
+.pl-rcard-{{ sid }} .pl-st {
+  color: #7a9c1e; font-size: 10.5px; letter-spacing: .2em; margin-bottom: 9px;
+}
+.pl-rcard-{{ sid }} h5 {
+  font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--pl-surface);
+  margin-bottom: 7px;
+}
+.pl-rcard-{{ sid }} p {
+  font-size: 12.6px; color: var(--pl-paper-2); line-height: 1.52; margin-bottom: 11px;
+}
+.pl-rcard-{{ sid }} .pl-who {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--pl-paper-3);
+}
+.pl-rcard-{{ sid }} .pl-who b  { color: var(--pl-surface); font-weight: 700; }
+.pl-rcard-{{ sid }} .pl-who svg { width: 12px; height: 12px; color: #4f7d10; flex: 0 0 auto; }
+
+@media (max-width: 760px) {
+  .pl-rcard-{{ sid }} { width: 250px; padding: 13px 14px; }
+}
+</style>
+
+<section id="pl-reviews-{{ sid }}" class="pl-sec" data-pl-scene="1">
+
+  <div style="max-width:1180px;margin:0 auto;padding:0 18px;">
+    <div class="pl-revhead-{{ sid }} pl-rv">
+      {%- if section.settings.heading != blank -%}
+        <span class="pl-kicker">{{ section.settings.heading }}</span>
+      {%- endif -%}
+
+      {%- if section.settings.aggregate_rating != blank -%}
+        <span class="pl-agg">
+          <span class="pl-st" aria-hidden="true">★★★★★</span>
+          <b>{{ section.settings.aggregate_rating }}</b>
+          from {{ section.settings.aggregate_count }} reviews
+        </span>
+      {%- endif -%}
+
+      {%- if section.settings.aggregate_homes != blank -%}
+        <span class="pl-agg">
+          Loved by <b>{{ section.settings.aggregate_homes }}</b> homes
+        </span>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="pl-revrail-{{ sid }} pl-rv" aria-label="Customer reviews">
+      <div class="pl-revtrack-{{ sid }}">
+
+        {%- comment -%}
+          Loop twice so the -50% translateX creates a seamless infinite loop.
+          Both passes must render the same set of cards.
+        {%- endcomment -%}
+        {%- for pass in (1..2) -%}
+          {%- for block in section.blocks -%}
+            {%- liquid
+              assign star_count = block.settings.stars | default: 5
+              assign star_str = ''
+              for i in (1..star_count)
+                assign star_str = star_str | append: '★'
+              endfor
+            -%}
+            <article class="pl-glass-2 pl-rcard-{{ sid }}" {{ block.shopify_attributes }}>
+              <div class="pl-st" aria-label="{{ star_count }} out of 5 stars">{{ star_str }}</div>
+              {%- if block.settings.title != blank -%}
+                <h5>{{ block.settings.title | escape }}</h5>
+              {%- endif -%}
+              {%- if block.settings.body != blank -%}
+                <p>{{ block.settings.body | strip_html | truncate: 160 }}</p>
+              {%- endif -%}
+              <div class="pl-who">
+                {%- render 'purelane-icon-check' -%}
+                <b>{{ block.settings.reviewer_name | default: 'Verified buyer' | escape }}</b>
+                {%- if block.settings.product_name != blank -%}
+                  <span>· {{ block.settings.product_name | escape }}</span>
+                {%- endif -%}
+              </div>
+            </article>
+          {%- endfor -%}
+        {%- endfor -%}
+
+      </div>
+    </div>
+  {%- else -%}
+    <p class="pl-body-s" style="text-align:center;padding:40px 18px;color:var(--pl-paper-3);">
+      Add review blocks in the theme editor to populate this marquee.
+    </p>
+  {%- endif -%}
+
+</section>
+
+{{ 'purelane-sections.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Purelane — Reviews",
+  "tag": "section",
+  "class": "purelane-reviews",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Kicker heading",
+      "default": "That's what they said"
+    },
+    {
+      "type": "header",
+      "content": "Aggregate statistics"
+    },
+    {
+      "type": "text",
+      "id": "aggregate_rating",
+      "label": "Average rating",
+      "default": "4.8",
+      "info": "Displayed as a headline stat. Update manually or sync from your reviews platform."
+    },
+    {
+      "type": "text",
+      "id": "aggregate_count",
+      "label": "Total review count",
+      "default": "8,000+"
+    },
+    {
+      "type": "text",
+      "id": "aggregate_homes",
+      "label": "Homes stat",
+      "default": "12 lakh+"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "select",
+          "id": "stars",
+          "label": "Star rating",
+          "options": [
+            { "value": "3", "label": "★★★ 3 stars" },
+            { "value": "4", "label": "★★★★ 4 stars" },
+            { "value": "5", "label": "★★★★★ 5 stars" }
+          ],
+          "default": "5"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Review title",
+          "default": "Works like a charm"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Review text",
+          "default": "Finally an eco option that cleans as well as the chemical detergent I used for years, and it smells better."
+        },
+        {
+          "type": "text",
+          "id": "reviewer_name",
+          "label": "Reviewer name",
+          "default": "Anita"
+        },
+        {
+          "type": "text",
+          "id": "product_name",
+          "label": "Product reviewed",
+          "default": "Laundry detergent"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Purelane — Reviews",
+      "blocks": [
+        {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Works like a charm",
+            "body": "Finally an eco option that cleans as well as the chemical detergent I used for years, and it smells better.",
+            "reviewer_name": "Anita",
+            "product_name": "Laundry detergent"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Best dishwash ever",
+            "body": "Our old dishwash left my help with dry, cracked skin. That stopped completely after we switched.",
+            "reviewer_name": "Priya",
+            "product_name": "Dishwash gel"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Great product, great packaging",
+            "body": "Very soft on hands with a lovely fragrance, and it feels good to be using far less plastic.",
+            "reviewer_name": "Sunita",
+            "product_name": "Liquid handwash"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Dog friendly",
+            "body": "We switched because chemical floor cleaners were setting off my dog's allergies. No reactions since.",
+            "reviewer_name": "Rohit S.",
+            "product_name": "Floor cleaner"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Sparkling taps again",
+            "body": "Hard water had ruined our bathroom fittings. Two sprays and the scale wipes straight off, no scrubbing.",
+            "reviewer_name": "Verified buyer",
+            "product_name": "Tap cleaner"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
