@@ -45,6 +45,17 @@
   --pl-ease: cubic-bezier(.2,.7,.2,1);
 }
 
+/* Page background — V2 light sunlit shallow water ground */
+body,
+.gradient {
+  background-color: var(--pl-ink) !important;
+  background: linear-gradient(178deg, #fbfffb 0%, #eafaec 24%, #d6f1dc 54%, #bfe8ca 100%) fixed !important;
+  color: var(--pl-paper);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
+
 /* Reduced-motion override: collapse all animation durations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
