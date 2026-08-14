@@ -190,15 +190,23 @@
 
       {%- for block in section.blocks -%}
         {%- liquid
-          assign p1   = block.settings.product_1
-          assign p2   = block.settings.product_2
-          assign p3   = block.settings.product_3
-          assign p4   = block.settings.product_4
+          assign p1 = block.settings.product_1
+          assign p2 = block.settings.product_2
+          assign p3 = block.settings.product_3
+          assign p4 = block.settings.product_4
           assign products_in_block = 0
-          if p1;   assign products_in_block = products_in_block | plus: 1; endif
-          if p2;   assign products_in_block = products_in_block | plus: 1; endif
-          if p3;   assign products_in_block = products_in_block | plus: 1; endif
-          if p4;   assign products_in_block = products_in_block | plus: 1; endif
+          if p1 != blank
+            assign products_in_block = products_in_block | plus: 1
+          endif
+          if p2 != blank
+            assign products_in_block = products_in_block | plus: 1
+          endif
+          if p3 != blank
+            assign products_in_block = products_in_block | plus: 1
+          endif
+          if p4 != blank
+            assign products_in_block = products_in_block | plus: 1
+          endif
         -%}
 
         <article class="pl-glass pl-combo-{{ sid }}{% if block.settings.highlight %} pl-combo--hero{% endif %}"
@@ -214,37 +222,57 @@
             {%- endif -%}
 
             <div class="pl-stack-{{ sid }}">
-              {%- assign combo_products = p1, p2, p3, p4 -%}
-              {%- assign combo_notes = block.settings.product_1_note, block.settings.product_2_note, block.settings.product_3_note, block.settings.product_4_note -%}
-              {%- assign first_item = true -%}
-
-              {%- for cp in combo_products -%}
-                {%- if cp -%}
-                  {%- unless first_item -%}
-                    <span class="pl-plus" aria-hidden="true">+</span>
-                  {%- endunless -%}
-                  <span class="pl-sit">
-                    {%- if cp.featured_image -%}
-                      <img
-                        src="{{ cp.featured_image | image_url: width: 120 }}"
-                        alt="{{ cp.featured_image.alt | default: cp.title | escape }}"
-                        width="60" height="66"
-                        loading="lazy">
-                    {%- else -%}
-                      <span class="pl-sit-tile">
-                        {%- render 'purelane-icon-leaf' -%}
-                      </span>
-                    {%- endif -%}
-                    {%- assign cp_note = combo_notes[forloop.index0] -%}
-                    {%- if cp_note != blank -%}
-                      <span>{{ cp_note }}</span>
-                    {%- else -%}
-                      <span>{{ cp.title | truncate: 22 }}</span>
-                    {%- endif -%}
-                  </span>
-                  {%- assign first_item = false -%}
-                {%- endif -%}
-              {%- endfor -%}
+              {%- if products_in_block > 0 -%}
+                {%- assign first_item = true -%}
+                {%- for i in (1..4) -%}
+                  {%- liquid
+                    case i
+                      when 1
+                        assign cp = p1
+                        assign cp_note = block.settings.product_1_note
+                      when 2
+                        assign cp = p2
+                        assign cp_note = block.settings.product_2_note
+                      when 3
+                        assign cp = p3
+                        assign cp_note = block.settings.product_3_note
+                      when 4
+                        assign cp = p4
+                        assign cp_note = block.settings.product_4_note
+                    endcase
+                  -%}
+                  {%- if cp != blank -%}
+                    {%- unless first_item -%}
+                      <span class="pl-plus" aria-hidden="true">+</span>
+                    {%- endunless -%}
+                    <span class="pl-sit">
+                      {%- if cp.featured_image -%}
+                        <img
+                          src="{{ cp.featured_image | image_url: width: 120 }}"
+                          alt="{{ cp.featured_image.alt | default: cp.title | escape }}"
+                          width="60" height="66"
+                          loading="lazy">
+                      {%- else -%}
+                        <span class="pl-sit-tile">
+                          {%- render 'purelane-icon-leaf' -%}
+                        </span>
+                      {%- endif -%}
+                      {%- if cp_note != blank -%}
+                        <span>{{ cp_note }}</span>
+                      {%- else -%}
+                        <span>{{ cp.title | truncate: 22 }}</span>
+                      {%- endif -%}
+                    </span>
+                    {%- assign first_item = false -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- else -%}
+                <span class="pl-sit"><span class="pl-sit-tile">{%- render 'purelane-icon-leaf' -%}</span><span>{{ block.settings.product_1_note | default: 'Product 1' }}</span></span>
+                <span class="pl-plus" aria-hidden="true">+</span>
+                <span class="pl-sit"><span class="pl-sit-tile">{%- render 'purelane-icon-leaf' -%}</span><span>{{ block.settings.product_2_note | default: 'Product 2' }}</span></span>
+                <span class="pl-plus" aria-hidden="true">+</span>
+                <span class="pl-sit"><span class="pl-sit-tile">{%- render 'purelane-icon-leaf' -%}</span><span>{{ block.settings.product_3_note | default: 'Product 3' }}</span></span>
+              {%- endif -%}
             </div>
           </div>
 

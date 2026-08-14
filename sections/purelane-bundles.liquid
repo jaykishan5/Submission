@@ -131,11 +131,28 @@
     <div class="pl-tiers-{{ sid }}">
       {%- for block in section.blocks -%}
         {%- liquid
-          assign tier_products = block.settings.product_1, block.settings.product_2, block.settings.product_3, block.settings.product_4, block.settings.product_5
+          assign tp1 = block.settings.product_1
+          assign tp2 = block.settings.product_2
+          assign tp3 = block.settings.product_3
+          assign tp4 = block.settings.product_4
+          assign tp5 = block.settings.product_5
+
           assign tier_prod_count = 0
-          for tp in tier_products
-            if tp; assign tier_prod_count = tier_prod_count | plus: 1; endif
-          endfor
+          if tp1 != blank
+            assign tier_prod_count = tier_prod_count | plus: 1
+          endif
+          if tp2 != blank
+            assign tier_prod_count = tier_prod_count | plus: 1
+          endif
+          if tp3 != blank
+            assign tier_prod_count = tier_prod_count | plus: 1
+          endif
+          if tp4 != blank
+            assign tier_prod_count = tier_prod_count | plus: 1
+          endif
+          if tp5 != blank
+            assign tier_prod_count = tier_prod_count | plus: 1
+          endif
 
           assign delay_arr = 'pl-rv-d1,pl-rv-d2,pl-rv-d3' | split: ','
           assign tier_delay = delay_arr[forloop.index0]
@@ -149,19 +166,42 @@
           {%- endif -%}
 
           {%- comment -%} Product preview images {%- endcomment -%}
-          <div class="pl-tierpix-{{ sid }}{% if tier_prod_count >= 5 %} pl-tierpix--five{% endif %}"
+          <div class="pl-tierpix-{{ sid }}{% if tier_prod_count >= 5 or block.settings.quantity >= 5 %} pl-tierpix--five{% endif %}"
             aria-hidden="true">
-            {%- for tp in tier_products -%}
-              {%- if tp and tp.featured_image -%}
-                <img
-                  src="{{ tp.featured_image | image_url: width: 120 }}"
-                  alt="{{ tp.featured_image.alt | default: tp.title | escape }}"
-                  width="60" height="62"
-                  loading="lazy">
-              {%- elsif tp -%}
+            {%- if tier_prod_count > 0 -%}
+              {%- for i in (1..5) -%}
+                {%- liquid
+                  case i
+                    when 1
+                      assign tp = tp1
+                    when 2
+                      assign tp = tp2
+                    when 3
+                      assign tp = tp3
+                    when 4
+                      assign tp = tp4
+                    when 5
+                      assign tp = tp5
+                  endcase
+                -%}
+                {%- if tp != blank -%}
+                  {%- if tp.featured_image -%}
+                    <img
+                      src="{{ tp.featured_image | image_url: width: 120 }}"
+                      alt="{{ tp.featured_image.alt | default: tp.title | escape }}"
+                      width="60" height="62"
+                      loading="lazy">
+                  {%- else -%}
+                    <div style="width:40px;height:62px;border-radius:8px;background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(236,230,247,.3));"></div>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- else -%}
+              {%- assign placeholder_count = block.settings.quantity | default: 2 -%}
+              {%- for i in (1..placeholder_count) -%}
                 <div style="width:40px;height:62px;border-radius:8px;background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(236,230,247,.3));"></div>
-              {%- endif -%}
-            {%- endfor -%}
+              {%- endfor -%}
+            {%- endif -%}
           </div>
 
           {%- comment -%} Quantity {%- endcomment -%}
