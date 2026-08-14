@@ -1,0 +1,271 @@
+{
+  "sections": {
+    "hero": {
+      "type": "purelane-hero",
+      "blocks": {
+        "hero_slide_1": {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs1",
+            "slide_label": "Single bottle",
+            "savings_label": "33% off"
+          }
+        },
+        "hero_slide_2": {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs2",
+            "slide_label": "Any 2 products",
+            "price_display": "₹349",
+            "savings_label": "Save ₹249"
+          }
+        },
+        "hero_slide_3": {
+          "type": "slide",
+          "settings": {
+            "slide_layout": "hs3",
+            "slide_label": "Any 3 products",
+            "price_display": "₹499",
+            "savings_label": "Save ₹398"
+          }
+        }
+      },
+      "block_order": [
+        "hero_slide_1",
+        "hero_slide_2",
+        "hero_slide_3"
+      ],
+      "settings": {
+        "heading_line_1": "Clean",
+        "heading_line_2": "That",
+        "heading_accent_word": "Lasts",
+        "subheading": "<p>Homecare that works on the toughest grime, made from plants. Kind to your home, your family and the world outside it.</p>",
+        "cta_primary_label": "Shop now",
+        "cta_primary_url": "#shop",
+        "cta_secondary_label": "How it works",
+        "cta_secondary_url": "#combos",
+        "badge_1_icon": "leaf",
+        "badge_1_label": "Plant\npowered",
+        "badge_2_icon": "shield",
+        "badge_2_label": "Safe for\nkids & pets",
+        "badge_3_icon": "cross",
+        "badge_3_label": "Zero harsh\nchemicals"
+      }
+    },
+    "shop": {
+      "type": "purelane-shop",
+      "settings": {
+        "kicker": "Bestsellers",
+        "heading": "Loved by 30,000 homes",
+        "collection": "purelane-bestsellers",
+        "products_to_show": 8,
+        "show_rating": true,
+        "cta_label": "Add to cart"
+      }
+    },
+    "combos": {
+      "type": "purelane-combos",
+      "blocks": {
+        "combo_1": {
+          "type": "combo",
+          "settings": {
+            "combo_name": "Kitchen essentials",
+            "flag_label": "Most popular",
+            "save_label": "You save ₹398",
+            "description": "<p>Foaming kitchen cleaner, dishwash gel and tap cleaner. Everything you need for grease-free counters and sparkling taps.</p>",
+            "highlight": true,
+            "product_1_note": "Cuts grease instantly",
+            "product_2_note": "Squeaky clean dishes",
+            "product_3_note": "Melts hard water stains",
+            "price": "₹499",
+            "compare_price": "₹897",
+            "savings_badge": "Save ₹398",
+            "cta_label": "Shop bundle"
+          }
+        },
+        "combo_2": {
+          "type": "combo",
+          "settings": {
+            "combo_name": "Bathroom sparkle trio",
+            "save_label": "You save ₹249",
+            "description": "<p>Tap cleaner, toilet cleaner and washing machine cleaner tablets. Tough on limescale, gentle on lungs.</p>",
+            "highlight": false,
+            "product_1_note": "Shines metal fixtures",
+            "product_2_note": "Deep cleans bowls",
+            "product_3_note": "Descales inner drum",
+            "price": "₹349",
+            "compare_price": "₹598",
+            "savings_badge": "Save ₹249",
+            "cta_label": "Shop bundle"
+          }
+        },
+        "combo_3": {
+          "type": "combo",
+          "settings": {
+            "combo_name": "Whole home care box",
+            "flag_label": "Best value",
+            "save_label": "You save ₹599",
+            "description": "<p>Floor cleaner, laundry detergent, dishwash gel and handwash. A complete plant-powered refill for the whole household.</p>",
+            "highlight": false,
+            "product_1_note": "Neem floor cleaner",
+            "product_2_note": "Enzyme laundry wash",
+            "product_3_note": "Citrus dishwash gel",
+            "product_4_note": "Hydrating handwash",
+            "price": "₹699",
+            "compare_price": "₹1,298",
+            "savings_badge": "Save ₹599",
+            "cta_label": "Shop bundle"
+          }
+        }
+      },
+      "block_order": [
+        "combo_1",
+        "combo_2",
+        "combo_3"
+      ],
+      "settings": {
+        "kicker": "Pre-built to save you money",
+        "heading": "Best selling combos",
+        "subheading": "Swipe through the boxes people order most. Each one is already priced below buying the same products on their own.",
+        "rail_note": "Tapping \"Shop bundle\" opens the bundle picker with these products already added. You can still swap anything before you pay."
+      }
+    },
+    "bundles": {
+      "type": "purelane-bundles",
+      "blocks": {
+        "tier_starter": {
+          "type": "tier",
+          "settings": {
+            "tag_label": "Starter",
+            "quantity": 2,
+            "highlight": false,
+            "price": "₹349",
+            "compare_price": "₹598",
+            "savings_badge": "Save ₹249",
+            "benefit_1": "Pick any 2 products",
+            "benefit_2": "Free standard shipping",
+            "benefit_3": "100% money-back guarantee",
+            "cta_label": "Build 2-pack"
+          }
+        },
+        "tier_family": {
+          "type": "tier",
+          "settings": {
+            "tag_label": "Most popular",
+            "quantity": 3,
+            "highlight": true,
+            "price": "₹499",
+            "compare_price": "₹897",
+            "savings_badge": "Save ₹398",
+            "benefit_1": "Pick any 3 products",
+            "benefit_2": "Free express shipping",
+            "benefit_3": "Free reusable spray trigger",
+            "benefit_4": "100% money-back guarantee",
+            "cta_label": "Build 3-pack"
+          }
+        },
+        "tier_complete": {
+          "type": "tier",
+          "settings": {
+            "tag_label": "Best value",
+            "quantity": 5,
+            "highlight": false,
+            "price": "₹699",
+            "compare_price": "₹1,495",
+            "savings_badge": "Save ₹796",
+            "benefit_1": "Pick any 5 products",
+            "benefit_2": "Free express shipping",
+            "benefit_3": "2 free reusable triggers",
+            "benefit_4": "Priority support & guarantee",
+            "cta_label": "Build 5-pack"
+          }
+        }
+      },
+      "block_order": [
+        "tier_starter",
+        "tier_family",
+        "tier_complete"
+      ],
+      "settings": {
+        "kicker": "Build your bundle",
+        "heading": "One box. Every room.",
+        "subheading": "Mix and match across kitchen, laundry, home and skin. One flat price, no code needed, free shipping either way."
+      }
+    },
+    "reviews": {
+      "type": "purelane-reviews",
+      "blocks": {
+        "review_1": {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Works like a charm",
+            "body": "Finally an eco option that cleans as well as the chemical detergent I used for years, and it smells better.",
+            "reviewer_name": "Anita M.",
+            "product_name": "Laundry detergent"
+          }
+        },
+        "review_2": {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Grease is gone instantly",
+            "body": "The foaming kitchen cleaner cut through months of chimney grease in minutes. Completely blown away.",
+            "reviewer_name": "Rahul K.",
+            "product_name": "Kitchen cleaner"
+          }
+        },
+        "review_3": {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Sparkling taps again",
+            "body": "Hard water stains that no other brand could fix disappeared on the first application. Highly recommended!",
+            "reviewer_name": "Pooja S.",
+            "product_name": "Tap cleaner"
+          }
+        },
+        "review_4": {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Safe around our puppy",
+            "body": "Love that I can mop the floor without worrying about our puppy licking paws afterwards. Smells so fresh.",
+            "reviewer_name": "Dev P.",
+            "product_name": "Herbal floor cleaner"
+          }
+        },
+        "review_5": {
+          "type": "review",
+          "settings": {
+            "stars": "5",
+            "title": "Gentle on sensitive skin",
+            "body": "My hands no longer get dry or irritated from washing dishes. The bottle lasts surprisingly long too.",
+            "reviewer_name": "Meera T.",
+            "product_name": "Dishwash gel"
+          }
+        }
+      },
+      "block_order": [
+        "review_1",
+        "review_2",
+        "review_3",
+        "review_4",
+        "review_5"
+      ],
+      "settings": {
+        "heading": "That's what they said",
+        "aggregate_rating": "4.8",
+        "aggregate_count": "8,000+",
+        "aggregate_homes": "12 lakh+"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "shop",
+    "combos",
+    "bundles",
+    "reviews"
+  ]
+}
