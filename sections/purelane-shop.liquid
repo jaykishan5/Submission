@@ -86,14 +86,14 @@
             assign delay_idx = forloop.index0 | modulo: 4
             assign delay_class = delays[delay_idx]
 
-            assign rating      = product.metafields.reviews.rating.value
-            assign rating_count = product.metafields.reviews.rating_count.value
-            assign badge_label = product.metafields.purelane.badge_label.value
+            assign rating_raw   = product.metafields.reviews.rating.value
+            assign rating_count = product.metafields.purelane.review_count.value
+            assign badge_label  = product.metafields.purelane.badge_label.value
 
             assign rating_str  = ''
             assign count_str   = ''
-            if rating != blank
-              assign rating_str = rating | round: 1 | append: ''
+            if rating_raw != blank
+              assign rating_str = rating_raw.value | default: rating_raw | round: 1 | append: ''
             endif
             if rating_count != blank
               assign count_str = rating_count | append: ' reviews'
